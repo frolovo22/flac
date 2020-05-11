@@ -3,7 +3,7 @@ package meta
 import (
 	"encoding/binary"
 	"errors"
-	"io"
+	"github.com/icza/bitio"
 	"strings"
 )
 
@@ -20,7 +20,20 @@ type UserComment struct {
 	Value  string
 }
 
-func readVorbisComment(reader io.Reader) (*VorbisComment, error) {
+// The comment header is decoded as follows:
+//
+//	1) [vendor_length] = read an unsigned integer of 32 bits
+//	2) [vendor_string] = read a UTF-8 vector as [vendor_length] octets
+//	3) [user_comment_list_length] = read an unsigned integer of 32 bits
+//	4) iterate [user_comment_list_length] times {
+//
+//		5) [length] = read an unsigned integer of 32 bits
+//		6) this iteration's user comment = read a UTF-8 vector as [length] octets
+//
+//	}
+//
+//	7) [framing_bit] = read a single bit as boolean
+func readVorbisComment(reader *bitio.Reader) (*VorbisComment, error) {
 	vorbisComment := &VorbisComment{}
 
 	err := binary.Read(reader, binary.LittleEndian, &vorbisComment.VendorLength)
@@ -51,7 +64,7 @@ func readVorbisComment(reader io.Reader) (*VorbisComment, error) {
 	return vorbisComment, nil
 }
 
-func readUserComment(reader io.Reader) (*UserComment, error) {
+func readUserComment(reader *bitio.Reader) (*UserComment, error) {
 	userComment := &UserComment{}
 
 	err := binary.Read(reader, binary.LittleEndian, &userComment.Length)

@@ -8,7 +8,7 @@ const (
 	ApplicationBlockType   BlockType = 2
 	SeekTableBlockType     BlockType = 3
 	VorbisCommentBlockType BlockType = 4
-	CurSheetBlockType      BlockType = 5
+	CueSheetBlockType      BlockType = 5
 	PictureBlockType       BlockType = 6
 	InvalidBlockType       BlockType = 127
 )
@@ -25,8 +25,8 @@ func (b *BlockType) String() string {
 		return "SEEKTABLE"
 	case VorbisCommentBlockType:
 		return "VORBIS_COMMENT"
-	case CurSheetBlockType:
-		return "CURSHEET"
+	case CueSheetBlockType:
+		return "CUESHEET"
 	case PictureBlockType:
 		return "PICTURE"
 	case InvalidBlockType:

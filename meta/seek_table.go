@@ -3,7 +3,6 @@ package meta
 import (
 	"errors"
 	"github.com/icza/bitio"
-	"io"
 )
 
 type SeekTable struct {
@@ -16,7 +15,7 @@ type SeekPoint struct {
 	NumberOfSamples           uint16
 }
 
-func readSeekTable(reader io.Reader, size int) (*SeekTable, error) {
+func readSeekTable(reader *bitio.Reader, size int) (*SeekTable, error) {
 	seekTable := &SeekTable{}
 
 	// each seekpoint 18 bytes
@@ -35,27 +34,25 @@ func readSeekTable(reader io.Reader, size int) (*SeekTable, error) {
 	return seekTable, nil
 }
 
-func readSeekPoint(reader io.Reader) (*SeekPoint, error) {
+func readSeekPoint(reader *bitio.Reader) (*SeekPoint, error) {
 	seekPoint := &SeekPoint{}
 
-	bits := bitio.NewReader(reader)
-
 	// 64 bits per sample numbers of first sample
-	sampleNumbers, err := bits.ReadBits(64)
+	sampleNumbers, err := reader.ReadBits(64)
 	if err != nil {
 		return seekPoint, err
 	}
 	seekPoint.SampleNumberOfFirstSample = sampleNumbers
 
 	// 64 bits per offset
-	offset, err := bits.ReadBits(64)
+	offset, err := reader.ReadBits(64)
 	if err != nil {
 		return seekPoint, err
 	}
 	seekPoint.Offset = offset
 
 	// 16 bits per number of samples
-	numberOfSamples, err := bits.ReadBits(16)
+	numberOfSamples, err := reader.ReadBits(16)
 	if err != nil {
 		return seekPoint, err
 	}

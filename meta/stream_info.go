@@ -3,7 +3,6 @@ package meta
 import (
 	"errors"
 	"github.com/icza/bitio"
-	"io"
 )
 
 /*
@@ -39,62 +38,60 @@ func (si *StreamInfo) check() error {
 	return nil
 }
 
-func readStreamInfo(reader io.Reader) (*StreamInfo, error) {
+func readStreamInfo(reader *bitio.Reader) (*StreamInfo, error) {
 	si := &StreamInfo{}
 
-	bits := bitio.NewReader(reader)
-
 	// 16 bits per minimum block size
-	minimumBlockSize, err := bits.ReadBits(16)
+	minimumBlockSize, err := reader.ReadBits(16)
 	if err != nil {
 		return si, err
 	}
 	si.MinimumBlockSize = uint16(minimumBlockSize)
 
 	// 16 bits per maximum block size
-	maximumBlockSize, err := bits.ReadBits(16)
+	maximumBlockSize, err := reader.ReadBits(16)
 	if err != nil {
 		return si, err
 	}
 	si.MaximumBlockSize = uint16(maximumBlockSize)
 
 	// 24 bits per minimum frame size
-	minimumFrameSize, err := bits.ReadBits(24)
+	minimumFrameSize, err := reader.ReadBits(24)
 	if err != nil {
 		return si, err
 	}
 	si.MinimumFrameSize = uint32(minimumFrameSize)
 
 	// 24 bits per maximum frame size
-	maximumFrameSize, err := bits.ReadBits(24)
+	maximumFrameSize, err := reader.ReadBits(24)
 	if err != nil {
 		return si, err
 	}
 	si.MaximumFrameSize = uint32(maximumFrameSize)
 
 	// 20 bit per SampleRate
-	sampleRate, err := bits.ReadBits(20)
+	sampleRate, err := reader.ReadBits(20)
 	if err != nil {
 		return si, err
 	}
 	si.SampleRate = uint32(sampleRate)
 
 	// 3 bits per number of channels
-	numberOfChannels, err := bits.ReadBits(3)
+	numberOfChannels, err := reader.ReadBits(3)
 	if err != nil {
 		return si, err
 	}
 	si.NumberOfChannels = uint8(numberOfChannels) + 1
 
 	// 5 bits per bits per sample
-	bitsPerSample, err := bits.ReadBits(5)
+	bitsPerSample, err := reader.ReadBits(5)
 	if err != nil {
 		return si, err
 	}
 	si.BitsPerSample = uint8(bitsPerSample) + 1
 
 	// 36 bits per total samples in stream
-	totalSamplesInStream, err := bits.ReadBits(36)
+	totalSamplesInStream, err := reader.ReadBits(36)
 	if err != nil {
 		return si, err
 	}

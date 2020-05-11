@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestReadFlac(t *testing.T) {
+func TestReadBeeMoved(t *testing.T) {
 	_, err := flac.ReadFile("test/BeeMoved.flac")
 	if err != nil {
 		t.Error(err)

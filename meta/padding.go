@@ -1,12 +1,14 @@
 package meta
 
-import "io"
+import (
+	"github.com/icza/bitio"
+)
 
 type Padding struct {
 	Data []byte
 }
 
-func readPadding(reader io.Reader, size int) (*Padding, error) {
+func readPadding(reader *bitio.Reader, size int) (*Padding, error) {
 	padding := &Padding{
 		Data: make([]byte, size),
 	}

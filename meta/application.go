@@ -1,7 +1,7 @@
 package meta
 
 import (
-	"io"
+	"github.com/icza/bitio"
 )
 
 type Application struct {
@@ -9,7 +9,7 @@ type Application struct {
 	Data []byte
 }
 
-func readApplication(reader io.Reader, size int) (*Application, error) {
+func readApplication(reader *bitio.Reader, size int) (*Application, error) {
 	application := &Application{}
 
 	// 4 bytes per ID

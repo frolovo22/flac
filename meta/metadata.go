@@ -3,7 +3,6 @@ package meta
 import (
 	"errors"
 	"github.com/icza/bitio"
-	"io"
 )
 
 type MetadataBlock struct {
@@ -11,7 +10,7 @@ type MetadataBlock struct {
 	Data   MetadataBlockData
 }
 
-func ReadMetadataBlock(reader io.Reader) (*MetadataBlock, error) {
+func ReadMetadataBlock(reader *bitio.Reader) (*MetadataBlock, error) {
 	metadata := &MetadataBlock{}
 
 	header, err := readMetadataBlockHeader(reader)
@@ -24,21 +23,22 @@ func ReadMetadataBlock(reader io.Reader) (*MetadataBlock, error) {
 	case StreamInfoBlockType:
 		metadata.Data, err = readStreamInfo(reader)
 	case PaddingBlockType:
-		metadata.Data, err = readPadding(reader, metadata.Header.Length)
+		metadata.Data, err = readPadding(reader, header.Length)
 	case ApplicationBlockType:
-		metadata.Data, err = readApplication(reader, metadata.Header.Length)
+		metadata.Data, err = readApplication(reader, header.Length)
 	case SeekTableBlockType:
-		metadata.Data, err = readSeekTable(reader, metadata.Header.Length)
+		metadata.Data, err = readSeekTable(reader, header.Length)
 	case VorbisCommentBlockType:
 		metadata.Data, err = readVorbisComment(reader)
-	case CurSheetBlockType:
-		metadata.Data = nil
+	case CueSheetBlockType:
+		metadata.Data, err = readCueSheet(reader)
 	case PictureBlockType:
-		metadata.Data = nil
+		metadata.Data, err = readPicture(reader)
 	case InvalidBlockType:
 		err = errors.New("invalid block type")
 	default:
-		err = errors.New("error block type")
+		data := make([]byte, header.Length)
+		_, err = reader.Read(data)
 	}
 
 	return metadata, err
@@ -52,27 +52,25 @@ type MetadataBlockHeader struct {
 
 type MetadataBlockData interface{}
 
-func readMetadataBlockHeader(reader io.Reader) (*MetadataBlockHeader, error) {
+func readMetadataBlockHeader(reader *bitio.Reader) (*MetadataBlockHeader, error) {
 	header := MetadataBlockHeader{}
 
-	bits := bitio.NewReader(reader)
-
 	// IsLast: 1 bit
-	isLast, err := bits.ReadBool()
+	isLast, err := reader.ReadBool()
 	if err != nil {
 		return &header, err
 	}
 	header.IsLast = isLast
 
 	// Type: bits 2-8
-	blockType, err := bits.ReadBits(7)
+	blockType, err := reader.ReadBits(7)
 	if err != nil {
 		return &header, err
 	}
 	header.Type = BlockType(blockType)
 
 	// Size: 3 bytes
-	length, err := bits.ReadBits(24)
+	length, err := reader.ReadBits(24)
 	if err != nil {
 		return &header, err
 	}

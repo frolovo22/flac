@@ -4,6 +4,7 @@ import (
 	"errors"
 	"frolovo22/flac/frame"
 	"frolovo22/flac/meta"
+	"github.com/icza/bitio"
 	"io"
 	"os"
 )
@@ -29,14 +30,16 @@ func ReadFile(path string) (*FLAC, error) {
 func Read(reader io.Reader) (*FLAC, error) {
 	flac := FLAC{}
 
+	bits := bitio.NewReader(reader)
+
 	// check format
-	err := flac.readMarker(reader)
+	err := flac.readMarker(bits)
 	if err != nil {
 		return &flac, err
 	}
 
 	// read metadata
-	err = flac.readMetadata(reader)
+	err = flac.readMetadata(bits)
 	if err != nil {
 		return &flac, err
 	}
@@ -46,19 +49,20 @@ func Read(reader io.Reader) (*FLAC, error) {
 	return &flac, nil
 }
 
-func (f *FLAC) readMarker(reader io.Reader) error {
-	marker, err := readString(reader, 4)
+func (f *FLAC) readMarker(reader *bitio.Reader) error {
+	marker := make([]byte, 4)
+	_, err := reader.Read(marker)
 	if err != nil {
 		return err
 	}
-	if marker != StreamMarker {
+	if string(marker) != StreamMarker {
 		return errors.New("incorrect marker")
 	}
-	f.Marker = marker
+	f.Marker = string(marker)
 	return nil
 }
 
-func (f *FLAC) readMetadata(reader io.Reader) error {
+func (f *FLAC) readMetadata(reader *bitio.Reader) error {
 	isLast := false
 	for !isLast {
 		metadata, err := meta.ReadMetadataBlock(reader)
