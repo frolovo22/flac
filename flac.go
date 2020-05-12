@@ -14,7 +14,7 @@ const StreamMarker = "fLaC"
 type FLAC struct {
 	Marker         string // always "fLaC"
 	MetadataBlocks []meta.MetadataBlock
-	Frames         []frame.Frame
+	Frame          frame.Frame
 }
 
 func ReadFile(path string) (*FLAC, error) {
@@ -45,6 +45,10 @@ func Read(reader io.Reader) (*FLAC, error) {
 	}
 
 	// read frames
+	err = flac.readFrame(bits)
+	if err != nil {
+		return &flac, err
+	}
 
 	return &flac, nil
 }
@@ -72,5 +76,14 @@ func (f *FLAC) readMetadata(reader *bitio.Reader) error {
 		f.MetadataBlocks = append(f.MetadataBlocks, *metadata)
 		isLast = metadata.Header.IsLast
 	}
+	return nil
+}
+
+func (f *FLAC) readFrame(reader *bitio.Reader) error {
+	frame, err := frame.ReadFrame(reader)
+	if err != nil {
+		return err
+	}
+	f.Frame = *frame
 	return nil
 }
