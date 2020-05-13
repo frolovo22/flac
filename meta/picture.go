@@ -102,9 +102,15 @@ func readLengthData(reader *bitio.Reader, order binary.ByteOrder) ([]byte, error
 
 	// data
 	data := make([]byte, length)
-	_, err = reader.Read(data)
-	if err != nil {
-		return nil, err
+
+	// read max 4096 bytes
+	currentSize := 0
+	for currentSize < int(length) {
+		n, err := reader.Read(data[currentSize:])
+		if err != nil {
+			return nil, err
+		}
+		currentSize += n
 	}
 	return data, nil
 }

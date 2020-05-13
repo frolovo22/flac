@@ -6,7 +6,7 @@ import (
 
 type FrameHeader struct {
 	// sync code
-	// (14 bits) always 1111 1111 1111 10
+	// (14 bits) always 1111 1111 1111 10 (16382)
 	SyncCode uint16
 
 	// Reserved:
